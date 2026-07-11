@@ -1,0 +1,12 @@
+{
+  "name": "jolt-pickleball-club",
+  "version": "1.0.0",
+  "description": "Marketing and shop site for Jolt Pickleball Club — paddles, apparel, nets and court tiles.",
+  "private": true,
+  "scripts": {
+    "build": "node build.js",
+    "dev": "npm run build && npx --yes http-server dist -p 8080 -c-1",
+    "deploy": "bash deploy.sh"
+  },
+  "license": "UNLICENSED"
+}

@@ -1,0 +1,22 @@
+{
+  "siteName": "JoltZ Club",
+  "shortName": "JoltZ",
+  "tagline": "pickleball gear & courts",
+  "description": "JoltZ Pickleball Club — premium paddles, apparel, nets and modular court tiles. Built for players who bring the energy.",
+  "url": "https://www.joltz.club",
+  "contactEmail": "joltz.club@gmail.com",
+  "salesEmail": "joltz.club@gmail.com",
+  "phone": "+1 (510) 565-6337",
+  "address": "Newark, CA 94560",
+  "hours": "Mon–Sat, 7am–8pm PST",
+  "social": {
+    "instagram": "https://instagram.com/joltpickleball",
+    "facebook": "https://facebook.com/joltpickleball"
+  },
+  "nav": [
+    { "label": "Home", "href": "index.html" },
+    { "label": "Shop", "href": "shop.html" },
+    { "label": "Contact", "href": "contact.html" }
+  ],
+  "year": "2026"
+}
