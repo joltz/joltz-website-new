@@ -1,0 +1,186 @@
+<section class="page-hero">
+  <div class="container">
+    <div class="eyebrow">Admin</div>
+    <h1>Courts, slots &amp; bookings.</h1>
+    <p>Configure operating hours and court pricing, and see every booking and payment as it comes in.</p>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+
+    <!-- Login gate: no self-registration here — admin accounts are seeded
+         via server/.env or promoted from the Users tab by an existing admin. -->
+    <div id="admin-login-wrap" style="max-width:420px;">
+      <div class="admin-panel">
+        <h3>Admin Log In</h3>
+        <form id="admin-login-form">
+          <div class="field">
+            <label for="admin-login-email">Email address</label>
+            <input type="email" id="admin-login-email" autocomplete="email" required />
+          </div>
+          <div class="field">
+            <label for="admin-login-password">Password</label>
+            <input type="password" id="admin-login-password" autocomplete="current-password" required />
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">Log In</button>
+        </form>
+        <div class="booking-msg" id="admin-login-msg"></div>
+      </div>
+    </div>
+
+    <!-- Shown if logged in but not an admin -->
+    <div id="admin-denied" style="display:none;" class="access-denied">
+      <h3>This page is for admin accounts only.</h3>
+      <p>You're logged in as <b id="denied-email" style="color:var(--chalk);"></b>, which doesn't have admin access.</p>
+      <button type="button" class="btn btn-outline" id="denied-logout" style="margin-top:20px;">Log Out</button>
+    </div>
+
+    <!-- The actual dashboard: shown only once /api/auth/me confirms role === 'admin' -->
+    <div id="admin-dashboard" style="display:none;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:28px;">
+        <span style="color:var(--chalk-dim);">Logged in as <b id="admin-label" style="color:var(--chalk);"></b></span>
+        <button type="button" class="btn btn-outline" id="admin-logout-btn">Log Out</button>
+      </div>
+
+      <div class="admin-stats" id="admin-stats">
+        <div class="admin-stat"><span>Total Revenue</span><b id="stat-revenue">—</b></div>
+        <div class="admin-stat"><span>Paid Bookings</span><b id="stat-paid">—</b></div>
+        <div class="admin-stat"><span>Pending Checkout</span><b id="stat-pending">—</b></div>
+        <div class="admin-stat"><span>Today</span><b id="stat-today">—</b></div>
+        <div class="admin-stat"><span>Upcoming</span><b id="stat-upcoming">—</b></div>
+      </div>
+
+      <div class="admin-panel">
+        <h3>Operating Hours &amp; Slot Rules</h3>
+        <form id="settings-form">
+          <div class="admin-form-grid">
+            <div class="field">
+              <label for="set-open">Opens (hour, 0–23)</label>
+              <input type="number" id="set-open" min="0" max="23" required />
+            </div>
+            <div class="field">
+              <label for="set-close">Closes (hour, 1–24)</label>
+              <input type="number" id="set-close" min="1" max="24" required />
+            </div>
+            <div class="field">
+              <label for="set-slot">Slot length (minutes)</label>
+              <select id="set-slot">
+                <option value="30">30</option>
+                <option value="60">60</option>
+                <option value="90">90</option>
+                <option value="120">120</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="set-max">Max hours / booking</label>
+              <input type="number" id="set-max" min="1" max="12" required />
+            </div>
+            <div class="field">
+              <label for="set-window">Booking window (days)</label>
+              <input type="number" id="set-window" min="1" max="90" required />
+            </div>
+            <button type="submit" class="btn btn-primary">Save Settings</button>
+          </div>
+        </form>
+        <div class="booking-msg" id="settings-msg"></div>
+      </div>
+
+      <div class="admin-panel">
+        <h3>Courts</h3>
+        <div class="admin-table-wrap">
+          <table class="admin-table" id="courts-table">
+            <thead>
+              <tr>
+                <th>Name</th><th>Description</th><th>$ / hour</th><th>Active</th><th></th>
+              </tr>
+            </thead>
+            <tbody id="courts-tbody">
+              <tr><td colspan="5">Loading courts…</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 style="margin-top:32px;">Add A Court</h3>
+        <form id="add-court-form">
+          <div class="admin-form-grid">
+            <div class="field">
+              <label for="new-court-name">Name</label>
+              <input type="text" id="new-court-name" placeholder="Court 4" required />
+            </div>
+            <div class="field">
+              <label for="new-court-desc">Description</label>
+              <input type="text" id="new-court-desc" placeholder="Indoor, climate controlled" />
+            </div>
+            <div class="field">
+              <label for="new-court-rate">$ / hour</label>
+              <input type="number" id="new-court-rate" min="1" step="0.01" placeholder="25.00" required />
+            </div>
+            <button type="submit" class="btn btn-outline">Add Court</button>
+          </div>
+        </form>
+        <div class="booking-msg" id="courts-msg"></div>
+      </div>
+
+      <div class="admin-panel">
+        <h3>Users &amp; Roles</h3>
+        <div class="admin-table-wrap">
+          <table class="admin-table" id="users-table">
+            <thead>
+              <tr><th>Name</th><th>Email</th><th>Role</th><th>Joined</th><th></th></tr>
+            </thead>
+            <tbody id="users-tbody">
+              <tr><td colspan="5">Loading users…</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="booking-msg" id="users-msg"></div>
+      </div>
+
+      <div class="admin-panel">
+        <h3>Bookings &amp; Payments</h3>
+        <div class="admin-filters">
+          <div class="field">
+            <label for="filter-status">Status</label>
+            <select id="filter-status">
+              <option value="">All</option>
+              <option value="paid">Paid</option>
+              <option value="pending">Pending</option>
+              <option value="expired">Expired</option>
+              <option value="canceled">Canceled</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="filter-court">Court</label>
+            <select id="filter-court"><option value="">All courts</option></select>
+          </div>
+          <div class="field">
+            <label for="filter-from">From</label>
+            <input type="date" id="filter-from" />
+          </div>
+          <div class="field">
+            <label for="filter-to">To</label>
+            <input type="date" id="filter-to" />
+          </div>
+          <button type="button" class="btn btn-outline" id="filter-apply">Apply Filters</button>
+        </div>
+        <div class="admin-table-wrap">
+          <table class="admin-table" id="bookings-table">
+            <thead>
+              <tr>
+                <th>Date</th><th>Time</th><th>Court</th><th>Customer</th><th>Email</th><th>Amount</th><th>Status</th><th>Booked On</th>
+              </tr>
+            </thead>
+            <tbody id="bookings-tbody">
+              <tr><td colspan="8">Loading bookings…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<script src="assets/js/auth.js"></script>
+<script src="assets/js/admin.js"></script>

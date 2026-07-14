@@ -31,9 +31,18 @@ const PAGE_META = {
     title: 'Contact Us',
     description: 'Get in touch with Jolt Pickleball Club about paddles, apparel, nets, court tile installs or bulk orders.'
   },
+  'book.html': {
+    title: 'Book A Court',
+    description: 'Reserve a Jolt pickleball court by the hour. Pick a court, pick your time, pay securely online.'
+  },
   '404.html': {
     title: 'Page Not Found',
     description: 'The page you requested could not be found on the Jolt Pickleball Club site.'
+  },
+  'admin.html': {
+    title: 'Admin',
+    description: 'Jolt Pickleball Club admin panel.',
+    noindex: true
   }
 };
 
@@ -98,7 +107,8 @@ function build() {
       ...globalTokens,
       PAGE_TITLE: meta.title,
       PAGE_DESCRIPTION: meta.description,
-      PAGE_FILE: file
+      PAGE_FILE: file,
+      ROBOTS_META: meta.noindex ? '<meta name="robots" content="noindex, nofollow" />' : ''
     });
 
     let content = fs.readFileSync(path.join(pagesDir, file), 'utf8');

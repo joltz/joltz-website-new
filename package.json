@@ -1,12 +1,21 @@
 {
   "name": "jolt-pickleball-club",
-  "version": "1.0.0",
-  "description": "Marketing and shop site for Jolt Pickleball Club — paddles, apparel, nets and court tiles.",
+  "version": "1.1.0",
+  "description": "Marketing, shop and court-booking site for Jolt Pickleball Club — paddles, apparel, nets, court tiles, and hourly court reservations with online payment.",
   "private": true,
   "scripts": {
     "build": "node build.js",
     "dev": "npm run build && npx --yes http-server dist -p 8080 -c-1",
-    "deploy": "bash deploy.sh"
+    "deploy": "bash deploy.sh",
+    "server": "npm run build && node server/index.js",
+    "server:dev": "npm run build && npx --yes nodemon server/index.js",
+    "stripe:listen": "npx --yes stripe listen --forward-to localhost:3000/api/stripe/webhook"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.3.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "stripe": "^16.8.0"
   },
   "license": "UNLICENSED"
 }

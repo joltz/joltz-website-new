@@ -36,6 +36,39 @@
     lines.forEach(function (el) { el.classList.add('in-view'); });
   }
 
+  // Image carousels (e.g. the tile benefits gallery on the shop page)
+  document.querySelectorAll('[data-carousel]').forEach(function (carousel) {
+    var slides = Array.prototype.slice.call(carousel.querySelectorAll('.carousel-slide'));
+    var dots = Array.prototype.slice.call(carousel.querySelectorAll('.dot'));
+    var prevBtn = carousel.querySelector('.carousel-arrow.prev');
+    var nextBtn = carousel.querySelector('.carousel-arrow.next');
+    var index = 0;
+    var timer = null;
+
+    function show(i) {
+      index = (i + slides.length) % slides.length;
+      slides.forEach(function (s, n) { s.classList.toggle('active', n === index); });
+      dots.forEach(function (d, n) { d.classList.toggle('active', n === index); });
+    }
+    function next() { show(index + 1); }
+    function prev() { show(index - 1); }
+    function startAutoplay() {
+      stopAutoplay();
+      timer = setInterval(next, 4500);
+    }
+    function stopAutoplay() { if (timer) clearInterval(timer); }
+
+    if (nextBtn) nextBtn.addEventListener('click', function () { next(); startAutoplay(); });
+    if (prevBtn) prevBtn.addEventListener('click', function () { prev(); startAutoplay(); });
+    dots.forEach(function (dot, n) {
+      dot.addEventListener('click', function () { show(n); startAutoplay(); });
+    });
+    carousel.addEventListener('mouseenter', stopAutoplay);
+    carousel.addEventListener('mouseleave', startAutoplay);
+
+    if (slides.length > 1) startAutoplay();
+  });
+
   // Contact form -> builds a mailto: link so enquiries land directly in
   // the visitor's own email client (no backend required for this static site)
   var form = document.getElementById('contact-form');

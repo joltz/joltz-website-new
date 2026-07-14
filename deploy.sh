@@ -2,6 +2,12 @@
 # ---------------------------------------------------------------------------
 # Jolt Pickleball Club — deploy script
 #
+# NOTE: this ships the static marketing/shop pages only (dist/). The Book a
+# Court page needs the Express + SQLite + Stripe server in server/ running
+# somewhere — a static host (Netlify, GitHub Pages, S3, etc.) can't run that.
+# For a full deploy with working bookings, host server/index.js on a real
+# Node platform (Render, Railway, Fly.io, a VPS) instead — see README.md.
+#
 # Always builds fresh into dist/ first, then pushes that folder using
 # whichever target you choose below. Only one TARGET is needed — pick
 # the one that matches your hosting, or copy the pattern for another host.

@@ -1,0 +1,112 @@
+<section class="page-hero photo">
+  <div class="page-hero-bg"><img src="assets/img/hero-court.jpeg" alt="Players on a Jolt pickleball court" /></div>
+  <div class="container">
+    <div class="eyebrow">Book A Court</div>
+    <h1>Reserve your time on the court.</h1>
+    <p>Pick a court, pick your hour, pay online — your slot is held the second checkout clears. Bookings open up to 3 weeks out.</p>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+
+    <div id="booking-confirm-panel" style="display:none;"></div>
+
+    <!-- Auth gate: shown until the visitor is logged in -->
+    <div id="auth-gate" style="max-width:440px;">
+      <div class="admin-panel">
+        <div class="shop-nav" style="margin-bottom:24px;">
+          <a href="#" class="auth-tab active" data-tab="login">Log In</a>
+          <a href="#" class="auth-tab" data-tab="register">Create Account</a>
+        </div>
+
+        <form id="login-form" class="auth-form">
+          <div class="field">
+            <label for="login-email">Email address</label>
+            <input type="email" id="login-email" autocomplete="email" required />
+          </div>
+          <div class="field">
+            <label for="login-password">Password</label>
+            <input type="password" id="login-password" autocomplete="current-password" required />
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">Log In</button>
+        </form>
+
+        <form id="register-form" class="auth-form" style="display:none;">
+          <div class="field">
+            <label for="register-name">Full name</label>
+            <input type="text" id="register-name" autocomplete="name" required />
+          </div>
+          <div class="field">
+            <label for="register-email">Email address</label>
+            <input type="email" id="register-email" autocomplete="email" required />
+          </div>
+          <div class="field">
+            <label for="register-password">Password</label>
+            <input type="password" id="register-password" autocomplete="new-password" minlength="8" required />
+            <p class="form-note" style="margin-top:6px;">At least 8 characters.</p>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">Create Account &amp; Continue</button>
+        </form>
+
+        <div class="booking-msg" id="auth-msg"></div>
+      </div>
+    </div>
+
+    <!-- Booking flow: shown once logged in -->
+    <div id="booking-app" style="display:none;">
+      <div class="admin-toggle" style="justify-content:space-between; display:flex; margin-bottom:28px; padding-bottom:20px; border-bottom:1px solid var(--slate-line);">
+        <span>Booking as <b id="account-label" style="color:var(--chalk);"></b></span>
+        <button type="button" class="btn btn-outline active" id="account-logout" style="padding:8px 18px;">Log Out</button>
+      </div>
+
+      <div class="booking-layout">
+        <div>
+          <div class="section-head" style="margin-bottom:24px;">
+            <div class="eyebrow">1. Choose A Court</div>
+            <h2 style="font-size:1.6rem;">Pick where you're playing.</h2>
+          </div>
+          <div class="court-picker" id="court-picker">
+            <p class="booking-empty">Loading courts…</p>
+          </div>
+
+          <div class="date-field">
+            <label for="booking-date">2. Choose A Date</label>
+            <input type="date" id="booking-date" />
+          </div>
+
+          <div id="slots-wrap" style="display:none;">
+            <div class="section-head" style="margin-bottom:16px;">
+              <div class="eyebrow">3. Choose Your Hour(s)</div>
+              <p style="color:var(--chalk-dim);margin-top:10px;font-size:0.92rem;">Tap one slot for an hour, or tap consecutive slots for a longer session.</p>
+            </div>
+            <div class="slot-grid" id="slot-grid"></div>
+            <div class="slot-legend">
+              <span><i style="background:var(--ink-2);"></i> Available</span>
+              <span><i style="background:var(--volt);border-color:var(--volt);"></i> Selected</span>
+              <span><i style="background:var(--ink-2);opacity:0.4;"></i> Booked / past</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="booking-summary">
+          <h3>Your Booking</h3>
+          <div id="summary-body">
+            <p class="booking-empty">Choose a court, date and at least one time slot to see your total.</p>
+          </div>
+
+          <form id="booking-form" style="display:none; margin-top:20px;">
+            <button type="submit" class="btn btn-primary btn-block" id="booking-submit">Continue To Payment</button>
+            <p class="form-note">You'll pay securely on Stripe's checkout page. Your slot is confirmed the moment payment clears.</p>
+          </form>
+
+          <div class="booking-msg" id="booking-msg"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<script src="assets/js/auth.js"></script>
+<script src="assets/js/booking.js"></script>
