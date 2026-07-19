@@ -6,15 +6,25 @@ people reserve an hourly court slot and pay online.
 
 The marketing/shop pages are static HTML/CSS/JS assembled by a small Node
 build script. The booking page is backed by a small Express server, a
-SQLite database, and Stripe Checkout for payment.
+SQLite database, and Stripe Checkout for payment. See
+[`DEPLOY_AWS.md`](DEPLOY_AWS.md) for deploying the static site on AWS
+Amplify Hosting with the API on a small EC2/Lightsail instance — no
+subscribed database service required.
 
 ## Structure
 
 ```
 pickleball-club/
 ├── build.js                # Assembles src/ into dist/ (static pages)
-├── deploy.sh                # Ships dist/ to a static hosting target
-├── package.json             # npm run build / dev / deploy / server
+├── deploy.sh                # Ships dist/ (or the full app, for ec2-api) to a target
+├── amplify.yml               # AWS Amplify Hosting build spec for dist/
+├── DEPLOY_AWS.md              # Full AWS walkthrough: Amplify + EC2/Lightsail API
+├── deploy/                    # AWS deployment helpers (see DEPLOY_AWS.md)
+│   ├── ec2-bootstrap.sh         # One-time API host setup (Node, Nginx, systemd)
+│   ├── jolt.service              # systemd unit for the API process
+│   ├── nginx-jolt.conf.example    # TLS-terminating reverse proxy template
+│   └── backup-to-s3.sh             # Optional: snapshot data.db to S3 on a cron
+├── package.json             # npm run build / dev / deploy / server / start
 ├── src/
 │   ├── config.json          # Brand name, email, phone, address, nav, year
 │   ├── partials/             # shell / head / header / footer
@@ -32,10 +42,10 @@ pickleball-club/
 │       ├── js/booking.js     # login gate + court/date/slot picker + checkout
 │       ├── js/admin.js       # admin login gate + settings/courts/users/bookings UI
 │       └── img/
-├── dist/                    # Generated static output
+├── dist/                    # Generated static output (what Amplify publishes)
 └── server/                  # Booking + admin API — required for book.html
     │                        # and admin.html to work
-    ├── index.js              # Express app entrypoint
+    ├── index.js              # Express app entrypoint (+ /healthz, CORS)
     ├── db.js                 # SQLite schema + court/settings seeding +
     │                          # first-admin bootstrap from env
     ├── config.js              # Default operating hours (fallback only —
@@ -45,6 +55,7 @@ pickleball-club/
     ├── validate.js             # Booking + email validation rules
     ├── password.js              # Password hashing (Node's built-in scrypt)
     ├── session.js                # Cookie sessions + requireAuth/requireAdmin
+    ├── cors.js                    # Cross-origin support for a split Amplify+API setup
     ├── stripeClient.js          # Stripe SDK init
     ├── routes/
     │   ├── auth.js               # POST /register, /login, /logout, GET /me
@@ -147,7 +158,7 @@ system — real accounts stored in the `users` table, not a shared password.
   time the server runs (only when the `users` table is empty):
   ```
   ADMIN_NAME=Admin
-  ADMIN_EMAIL=you@joltpickleball.com
+  ADMIN_EMAIL=you@joltz.club
   ADMIN_PASSWORD=change-me-to-something-long-and-random
   ```
   After that, these three variables are ignored — manage who else is an
@@ -209,8 +220,18 @@ Netlify Forms, or your own API).
 
 ## Deploying
 
-**Marketing/shop pages only (no booking):** `deploy.sh` builds and ships
-`dist/` to a static host:
+**Deploying to AWS with Amplify (recommended AWS path):** see
+[`DEPLOY_AWS.md`](DEPLOY_AWS.md) for the full walkthrough. Short version:
+AWS Amplify Hosting builds and serves the static site straight from
+[`amplify.yml`](amplify.yml); the booking API (Express + SQLite) runs on a
+small EC2/Lightsail instance instead, since Amplify's compute is stateless
+and SQLite needs persistent local disk. `./deploy.sh ec2-api` pushes the
+app to that instance; `deploy/ec2-bootstrap.sh` sets it up. No subscribed
+database service (RDS/DynamoDB/etc.) involved — just ordinary compute and,
+optionally, S3 for backups.
+
+**Marketing/shop pages only (no booking), any static host:** `deploy.sh`
+builds and ships `dist/`:
 
 ```bash
 ./deploy.sh netlify     # Netlify CLI (npx netlify-cli)
@@ -220,16 +241,20 @@ Netlify Forms, or your own API).
 ./deploy.sh zip         # Just zip dist/ for manual upload anywhere
 ```
 
-**With Book a Court working:** static hosts can't run the booking API or
-database, so you need a real Node host instead — e.g. Render, Railway,
-Fly.io, or your own VPS. Point it at `npm run server` as the start command,
-set the `STRIPE_*` and `ADMIN_*` environment variables from `server/.env`
-in that platform's dashboard, and register a webhook endpoint at
+**With Book a Court working, non-AWS:** static hosts can't run the booking
+API or database, so you need a real Node host instead — e.g. Render,
+Railway, Fly.io, or your own VPS. Point it at `npm start` (or `npm run
+server`, which also rebuilds `dist/` first) as the start command, set the
+`STRIPE_*` and `ADMIN_*` environment variables from `server/.env` in that
+platform's dashboard, and register a webhook endpoint at
 `https://yourdomain.com/api/stripe/webhook` in the Stripe dashboard once
 it's live (this replaces `npm run stripe:listen`, which is for local dev
-only).
+only). If the front-end ends up on a different origin than the API there
+too, set `ALLOWED_ORIGINS` and `CROSS_ORIGIN_COOKIES=true` the same way
+`DEPLOY_AWS.md` describes for Amplify — that part isn't AWS-specific.
 
 The SQLite file at `server/data.db` is created automatically and holds all
-bookings — back it up periodically, or swap `server/db.js` for a hosted
-Postgres/MySQL database if you outgrow a single file (the query patterns
-are simple and port over easily).
+bookings — `deploy/backup-to-s3.sh` can snapshot it to S3 on a schedule, or
+swap `server/db.js` for a hosted Postgres/MySQL database if you outgrow a
+single file (the query patterns are simple and port over easily).
+

@@ -1,0 +1,27 @@
+version: 1
+# AWS Amplify Hosting build spec — builds and publishes the static site
+# (dist/) only. This is the HTML/CSS/JS marketing, shop, book, and admin
+# pages; they call out to the booking API wherever it's hosted (see
+# API_BASE_URL below and DEPLOY_AWS.md for the full picture).
+#
+# Set API_BASE_URL as an environment variable in the Amplify Console
+# (App settings → Environment variables) if the API runs on a different
+# origin than this Amplify domain — e.g. https://api.joltz.club
+# for an EC2/Lightsail-hosted API. Leave it unset only if you have some
+# other way of serving both from the same origin (not the common case for
+# Amplify Hosting, since it doesn't run your Express server).
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - npm ci
+    build:
+      commands:
+        - npm run build
+  artifacts:
+    baseDirectory: dist
+    files:
+      - '**/*'
+  cache:
+    paths:
+      - node_modules/**/*

@@ -6,6 +6,7 @@ const express = require('express');
 
 const { getSettings } = require('./settings');
 const { attachUser, requireAuth, requireAdmin } = require('./session');
+const corsMiddleware = require('./cors');
 const authRouter = require('./routes/auth');
 const courtsRouter = require('./routes/courts');
 const availabilityRouter = require('./routes/availability');
@@ -16,6 +17,23 @@ const adminRouter = require('./routes/admin');
 const app = express();
 const PORT = process.env.PORT || 3000;
 const DIST_DIR = path.join(__dirname, '..', 'dist');
+
+app.set('trust proxy', 1); // correct req.protocol/secure behind an ALB/Nginx/CloudFront
+
+// Health check for load balancers, ECS/EC2 monitoring, or just a quick
+// "is the API and DB up" smoke test. Deliberately unauthenticated.
+app.get('/healthz', (req, res) => {
+  try {
+    require('./db').db.prepare('SELECT 1').get();
+    res.status(200).json({ ok: true });
+  } catch (err) {
+    res.status(503).json({ ok: false, error: 'database unavailable' });
+  }
+});
+
+// CORS must run before routes so preflight OPTIONS requests are answered;
+// it's a no-op unless ALLOWED_ORIGINS is set (see server/cors.js).
+app.use(corsMiddleware);
 
 // The Stripe webhook needs the raw, unparsed body to verify its signature,
 // so it must be mounted BEFORE express.json() below.
@@ -59,5 +77,9 @@ app.listen(PORT, () => {
   }
   if (!process.env.ADMIN_EMAIL || !process.env.ADMIN_PASSWORD) {
     console.log('  (ADMIN_EMAIL/ADMIN_PASSWORD not set — no admin account was auto-created. See server/.env.example.)');
+  }
+  if (process.env.ALLOWED_ORIGINS && process.env.CROSS_ORIGIN_COOKIES !== 'true') {
+    console.log('  (ALLOWED_ORIGINS is set but CROSS_ORIGIN_COOKIES is not "true" — login cookies will be rejected ' +
+      'by browsers on cross-site requests. Set CROSS_ORIGIN_COOKIES=true if the front-end is on a different domain, e.g. AWS Amplify.)');
   }
 });

@@ -1,0 +1,20 @@
+[Unit]
+Description=Jolt Pickleball Club booking API
+After=network.target
+
+[Service]
+Type=simple
+# Adjust to wherever you deploy the app on the instance
+WorkingDirectory=/home/ec2-user/jolt-pickleball-club
+EnvironmentFile=/home/ec2-user/jolt-pickleball-club/server/.env
+ExecStart=/usr/bin/node server/index.js
+Restart=on-failure
+RestartSec=5
+User=ec2-user
+
+# Basic hardening — safe defaults for a small single-purpose API process
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

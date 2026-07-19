@@ -1,0 +1,32 @@
+# /etc/nginx/conf.d/jolt-api.conf (example)
+#
+# Terminates HTTPS and reverse-proxies to the Node process on 127.0.0.1:3000.
+# HTTPS here is not optional — cross-origin session cookies (SameSite=None;
+# Secure) are rejected by browsers over plain HTTP. Use certbot (Let's
+# Encrypt) or an ACM cert on an ALB in front of this instead, whichever you
+# prefer; this file assumes certbot's standard output paths.
+#
+# Replace api.joltz.club with your real API subdomain.
+
+server {
+    listen 80;
+    server_name api.joltz.club;
+    # certbot will add a redirect to :443 here automatically after issuing
+    # a certificate with `sudo certbot --nginx -d api.joltz.club`
+}
+
+server {
+    listen 443 ssl;
+    server_name api.joltz.club;
+
+    ssl_certificate     /etc/letsencrypt/live/api.joltz.club/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/api.joltz.club/privkey.pem;
+
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}

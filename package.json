@@ -7,6 +7,7 @@
     "build": "node build.js",
     "dev": "npm run build && npx --yes http-server dist -p 8080 -c-1",
     "deploy": "bash deploy.sh",
+    "start": "node server/index.js",
     "server": "npm run build && node server/index.js",
     "server:dev": "npm run build && npx --yes nodemon server/index.js",
     "stripe:listen": "npx --yes stripe listen --forward-to localhost:3000/api/stripe/webhook"

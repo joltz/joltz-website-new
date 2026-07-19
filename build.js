@@ -93,7 +93,12 @@ function build() {
     HOURS: config.hours,
     INSTAGRAM_URL: config.social.instagram,
     FACEBOOK_URL: config.social.facebook,
-    YEAR: config.year
+    YEAR: config.year,
+    // Only needed when the static site (e.g. AWS Amplify Hosting) and the
+    // booking API (e.g. an EC2 host) are on different origins. Leave unset
+    // for same-origin deployments — every fetch() call then just uses
+    // relative /api/... paths exactly as before.
+    API_BASE_URL: process.env.API_BASE_URL || ''
   };
 
   const footer = fill(footerTpl, globalTokens);

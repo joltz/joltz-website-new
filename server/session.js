@@ -3,6 +3,12 @@
 // Cookie-based login sessions. A random token in an HttpOnly cookie maps to
 // a row in `sessions`, which points at a `users` row (with a role of 'user'
 // or 'admin'). No external session library needed.
+//
+// CROSS_ORIGIN_COOKIES=true switches the cookie to SameSite=None; Secure,
+// which is what's required when the front-end is served from a different
+// origin than this API (e.g. the static site on AWS Amplify Hosting calling
+// an API running on a separate EC2 host). Leave it unset for same-origin
+// deployments (e.g. `npm run server` serving both from one process).
 // ---------------------------------------------------------------------------
 const crypto = require('crypto');
 const { db } = require('./db');
@@ -59,14 +65,26 @@ function parseCookies(header) {
   return out;
 }
 
+function crossOrigin() {
+  return process.env.CROSS_ORIGIN_COOKIES === 'true';
+}
+
+function cookieAttrs(maxAgeSeconds) {
+  // SameSite=None requires Secure — browsers reject it otherwise. Also mark
+  // Secure whenever NODE_ENV=production even in same-origin mode, since
+  // production should always be served over HTTPS.
+  const sameSite = crossOrigin() ? 'None' : 'Lax';
+  const secure = crossOrigin() || process.env.NODE_ENV === 'production' ? '; Secure' : '';
+  const maxAge = maxAgeSeconds !== undefined ? `; Max-Age=${maxAgeSeconds}` : '';
+  return `HttpOnly; Path=/${maxAge}; SameSite=${sameSite}${secure}`;
+}
+
 function sessionCookieHeader(token, maxAgeSeconds) {
-  const secure = process.env.NODE_ENV === 'production' ? '; Secure' : '';
-  return `${SESSION_COOKIE}=${token}; HttpOnly; Path=/; Max-Age=${maxAgeSeconds}; SameSite=Lax${secure}`;
+  return `${SESSION_COOKIE}=${token}; ${cookieAttrs(maxAgeSeconds)}`;
 }
 
 function clearCookieHeader() {
-  const secure = process.env.NODE_ENV === 'production' ? '; Secure' : '';
-  return `${SESSION_COOKIE}=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax${secure}`;
+  return `${SESSION_COOKIE}=; ${cookieAttrs(0)}`;
 }
 
 /** Attaches req.user if a valid session cookie is present; never blocks. */
