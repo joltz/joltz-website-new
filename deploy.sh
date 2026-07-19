@@ -14,6 +14,12 @@
 # Always builds fresh into dist/ first, then pushes that folder using
 # whichever target you choose below. Only one TARGET is needed — pick
 # the one that matches your hosting, or copy the pattern for another host.
+#
+# For rsync/ec2-api: if your EC2/Lightsail key isn't already loaded in
+# ssh-agent or saved as the default identity, set SSH_KEY to its path —
+# otherwise ssh silently tries your default key instead and you'll hit
+# "Permission denied (publickey,...)":
+#   SSH_KEY=~/.ssh/my-ec2-key.pem ./deploy.sh ec2-api
 # ---------------------------------------------------------------------------
 set -euo pipefail
 
@@ -22,6 +28,9 @@ npm run build
 
 DIST="dist"
 TARGET="${1:-}"
+SSH_KEY="${SSH_KEY:-}"
+SSH_OPTS=()
+[ -n "$SSH_KEY" ] && SSH_OPTS=(-e "ssh -i $SSH_KEY")
 
 usage() {
   echo ""
@@ -38,6 +47,8 @@ usage() {
   echo "For AWS Amplify Hosting: connect your repo in the Amplify Console —"
   echo "it builds straight from amplify.yml, no script needed here."
   echo ""
+  echo "SSH_KEY=~/.ssh/your-key.pem ./deploy.sh ec2-api   (if needed — see above)"
+  echo ""
 }
 
 case "$TARGET" in
@@ -52,16 +63,16 @@ case "$TARGET" in
     ;;
   rsync)
     # Edit REMOTE to your user@host:/path before using this target
-    REMOTE="ec2-user@api.joltz.club:/var/www/joltpickleball"
-    rsync -avz --delete "$DIST"/ "$REMOTE"
+    REMOTE="user@joltz.club:/var/www/joltpickleball"
+    rsync -avz --delete "${SSH_OPTS[@]}" "$DIST"/ "$REMOTE"
     ;;
   ec2-api)
     # Edit REMOTE to your EC2/Lightsail user@host:/path before using this.
     # Pushes the whole repo (server/ included), not just dist/ — this
     # target is for the API host, not a static CDN. Never overwrites the
     # remote's own server/.env or server/data.db.
-    REMOTE="ec2-user@api.joltz.club:~/jolt-pickleball-club"
-    rsync -avz --delete \
+    REMOTE="ec2-user@ec2-18-191-145-16.us-east-2.compute.amazonaws.com:~/jolt-pickleball-club"
+    rsync -avz --delete "${SSH_OPTS[@]}" \
       --exclude node_modules --exclude dist \
       --exclude server/.env --exclude 'server/data.db*' \
       ./ "$REMOTE"/

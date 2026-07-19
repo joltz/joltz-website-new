@@ -28,11 +28,11 @@ neither of which is a database subscription.
 ```
 Browser
   │
-  ├──► Amplify Hosting (dist/)               https://joltz.club
+  ├──► Amplify Hosting (dist/)               https://joltpickleball.com
   │      index.html, shop.html, book.html …
   │      fetch() calls go to API_BASE_URL ───┐
   │                                          ▼
-  └──► EC2 / Lightsail instance         https://api.joltz.club
+  └──► EC2 / Lightsail instance         https://api.joltpickleball.com
          Nginx (TLS) → Node (Express) → SQLite file on local disk
 ```
 
@@ -44,15 +44,21 @@ variable.
 1. **Launch an instance.** A `t4g.small` (or Lightsail's cheapest plan) is
    plenty for this app. Amazon Linux 2023. Open ports 22, 80, 443 in the
    security group.
-2. **Get a domain/subdomain pointed at it**, e.g. `api.joltz.club`
+2. **Get a domain/subdomain pointed at it**, e.g. `api.joltpickleball.com`
    → the instance's Elastic IP. (Use an Elastic IP, not the default public
    IP, so it survives a stop/start.)
 3. **Copy the app to the instance** — `git clone` your repo, or from your
-   own machine:
+   own machine, using the `ec2-api` deploy target (point `REMOTE` in
+   `deploy.sh` at your instance first):
    ```bash
-   rsync -avz --exclude node_modules --exclude dist --exclude server/.env \
-     --exclude server/data.db ./ ec2-user@18.217.250.191 :~/jolt-pickleball-club/
+   SSH_KEY=~/.ssh/your-ec2-key.pem ./deploy.sh ec2-api
    ```
+   `SSH_KEY` is only needed if that `.pem` isn't already your default SSH
+   identity or loaded in `ssh-agent` — without it, ssh/rsync silently try
+   your default key instead and fail with `Permission denied
+   (publickey,...)`. Also double-check the username matches your AMI
+   (`ec2-user` for Amazon Linux, `ubuntu` for Ubuntu) and that the key's
+   permissions are locked down: `chmod 400 ~/.ssh/your-ec2-key.pem`.
 4. **Run the bootstrap script** on the instance:
    ```bash
    cd ~/jolt-pickleball-club
@@ -71,13 +77,13 @@ variable.
    Leave `ALLOWED_ORIGINS` pointed at your Amplify domain for now — you can
    add your final custom domain later (comma-separated, no trailing
    slashes).
-6. **Get an HTTPS certificate**: `sudo certbot --nginx -d api.joltz.club`.
+6. **Get an HTTPS certificate**: `sudo certbot --nginx -d api.joltpickleball.com`.
    This isn't optional — `CROSS_ORIGIN_COOKIES=true` sets the session
    cookie's `Secure` flag, and browsers silently drop `Secure` cookies over
    plain HTTP. Login would appear to work (the response comes back fine)
    but the session would never actually persist.
 7. **Start it**: `sudo systemctl start jolt`. Check `sudo systemctl status
-   jolt` and `curl https://api.joltz.club/healthz` (expect
+   jolt` and `curl https://api.joltpickleball.com/healthz` (expect
    `{"ok":true}`).
 
 ## Part 2 — The static site (AWS Amplify Hosting)
@@ -87,7 +93,7 @@ variable.
    there unless you rename directories.
 3. **App settings → Environment variables** → add:
    ```
-   API_BASE_URL = https://api.joltz.club
+   API_BASE_URL = https://api.joltpickleball.com
    ```
    This is read at build time (`build.js`) and baked into every page as
    `window.JOLT_API_BASE`, so all the front-end's `fetch()` calls target
@@ -101,7 +107,7 @@ variable.
 
 1. Visit your Amplify URL → `/book.html`.
 2. Open the browser's Network tab, register an account. The request
-   should go to `https://api.joltz.club/api/auth/register`, and
+   should go to `https://api.joltpickleball.com/api/auth/register`, and
    the response should include a `Set-Cookie` header.
 3. Reload the page. If you're still logged in, the cross-origin cookie
    round-trip is working. If you're logged out again, double-check:
@@ -123,6 +129,6 @@ variable.
   per-instance SQLite files. Don't try to run multiple API instances
   against the same SQLite file — it's single-writer by design.
 - **Custom domains**: put the Amplify app behind your root domain
-  (`joltz.club`) via Amplify's domain management, and keep the API
-  on a subdomain (`api.joltz.club`) with its own cert. Update
+  (`joltpickleball.com`) via Amplify's domain management, and keep the API
+  on a subdomain (`api.joltpickleball.com`) with its own cert. Update
   `ALLOWED_ORIGINS` and `API_BASE_URL` if either domain changes.

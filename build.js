@@ -98,7 +98,7 @@ function build() {
     // booking API (e.g. an EC2 host) are on different origins. Leave unset
     // for same-origin deployments — every fetch() call then just uses
     // relative /api/... paths exactly as before.
-    API_BASE_URL: process.env.API_BASE_URL || ''
+    API_BASE_URL: process.env.API_BASE_URL || 'https://api.joltz.club'
   };
 
   const footer = fill(footerTpl, globalTokens);
