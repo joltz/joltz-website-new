@@ -96,7 +96,7 @@
       var email = (data.get('email') || '').toString().trim();
       var topic = (data.get('topic') || 'General enquiry').toString();
       var message = (data.get('message') || '').toString().trim();
-      var to = form.getAttribute('data-to') || 'hello@joltz.club';
+      var to = form.getAttribute('data-to') || 'hello@joltpickleball.com';
 
       var subject = 'Website enquiry: ' + topic;
       var body =

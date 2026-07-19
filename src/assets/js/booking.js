@@ -114,7 +114,7 @@
       });
     }
 
-    fetch('/api/courts')
+    fetch(window.apiUrl('/api/courts'), { credentials: 'include' })
       .then(function (r) { return r.json(); })
       .then(function (data) {
         state.courts = data.courts || [];
@@ -124,7 +124,7 @@
         courtPicker.innerHTML = '<p class="booking-empty">Couldn\'t load courts. Refresh to try again.</p>';
       });
 
-    fetch('/api/config')
+    fetch(window.apiUrl('/api/config'), { credentials: 'include' })
       .then(function (r) { return r.json(); })
       .then(function (cfg) {
         var today = new Date();
@@ -151,7 +151,7 @@
       slotsWrap.style.display = 'block';
       slotGrid.innerHTML = '<p class="booking-empty">Loading availability…</p>';
 
-      fetch('/api/availability?courtId=' + state.selectedCourt.id + '&date=' + state.selectedDate)
+      fetch(window.apiUrl('/api/availability?courtId=' + state.selectedCourt.id + '&date=' + state.selectedDate), { credentials: 'include' })
         .then(function (r) { return r.json(); })
         .then(function (data) {
           if (data.error) { slotGrid.innerHTML = ''; showMsg(msgEl, data.error, 'error'); return; }
@@ -253,9 +253,10 @@
       submitBtn.textContent = 'Redirecting to payment…';
       showMsg(msgEl, 'Hold tight — creating your secure checkout session.', 'info');
 
-      fetch('/api/bookings/checkout', {
+      fetch(window.apiUrl('/api/bookings/checkout'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ courtId: state.selectedCourt.id, date: state.selectedDate, slots: sorted })
       })
         .then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
@@ -284,7 +285,7 @@
       confirmPanel.style.display = 'block';
       confirmPanel.innerHTML = '<div class="booking-confirm"><p class="booking-empty">Confirming your payment…</p></div>';
 
-      fetch('/api/bookings/confirm?session_id=' + encodeURIComponent(sessionId))
+      fetch(window.apiUrl('/api/bookings/confirm?session_id=' + encodeURIComponent(sessionId)), { credentials: 'include' })
         .then(function (r) { return r.json(); })
         .then(function (data) {
           if (data.error) {

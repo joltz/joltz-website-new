@@ -83,7 +83,7 @@
     var settingsMsg = document.getElementById('settings-msg');
 
     function loadSettings() {
-      fetch('/api/admin/settings')
+      fetch(window.apiUrl('/api/admin/settings'), { credentials: 'include' })
         .then(function (r) { return r.json(); })
         .then(function (data) {
           var s = data.settings;
@@ -106,9 +106,10 @@
         maxSlotsPerBooking: Number(document.getElementById('set-max').value),
         bookingWindowDays: Number(document.getElementById('set-window').value)
       };
-      fetch('/api/admin/settings', {
+      fetch(window.apiUrl('/api/admin/settings'), {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(body)
       })
         .then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
@@ -152,9 +153,10 @@
         hourlyRateCents: dollarsToCents(row.querySelector('.c-rate').value),
         active: row.querySelector('.c-active').checked
       };
-      fetch('/api/admin/courts/' + id, {
+      fetch(window.apiUrl('/api/admin/courts/' + id), {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(body)
       })
         .then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
@@ -167,7 +169,7 @@
     }
 
     function loadCourts() {
-      return fetch('/api/admin/courts')
+      return fetch(window.apiUrl('/api/admin/courts'), { credentials: 'include' })
         .then(function (r) { return r.json(); })
         .then(function (data) {
           allCourts = data.courts || [];
@@ -194,9 +196,10 @@
       var description = document.getElementById('new-court-desc').value.trim();
       var rate = document.getElementById('new-court-rate').value;
 
-      fetch('/api/admin/courts', {
+      fetch(window.apiUrl('/api/admin/courts'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ name: name, description: description, hourlyRateCents: dollarsToCents(rate) })
       })
         .then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
@@ -214,7 +217,7 @@
     var usersMsg = document.getElementById('users-msg');
 
     function loadUsers() {
-      fetch('/api/admin/users')
+      fetch(window.apiUrl('/api/admin/users'), { credentials: 'include' })
         .then(function (r) { return r.json(); })
         .then(function (data) {
           var users = data.users || [];
@@ -241,9 +244,10 @@
 
     function toggleRole(id, newRole) {
       clearMsg(usersMsg);
-      fetch('/api/admin/users/' + id + '/role', {
+      fetch(window.apiUrl('/api/admin/users/' + id + '/role'), {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ role: newRole })
       })
         .then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
@@ -279,7 +283,7 @@
 
       bookingsTbody.innerHTML = '<tr><td colspan="8">Loading bookings…</td></tr>';
 
-      fetch('/api/admin/bookings?' + params.toString())
+      fetch(window.apiUrl('/api/admin/bookings?' + params.toString()), { credentials: 'include' })
         .then(function (r) { return r.json(); })
         .then(function (data) {
           renderStats(data.summary);

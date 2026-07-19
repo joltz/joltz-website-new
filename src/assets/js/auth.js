@@ -6,7 +6,8 @@ window.JoltAuth = (function () {
   "use strict";
 
   function request(url, options) {
-    return fetch(url, Object.assign({ headers: { 'Content-Type': 'application/json' } }, options))
+    const opts = Object.assign({ headers: { 'Content-Type': 'application/json' }, credentials: 'include' }, options);
+    return fetch(window.apiUrl(url), opts)
       .then(function (r) {
         return r.json().catch(function () { return {}; }).then(function (data) {
           return { ok: r.ok, status: r.status, data: data };
